@@ -1,0 +1,117 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+struct Node
+{
+    string date;
+    Node *left, *right;
+};
+
+Node* createNode(string date)
+{
+    Node* temp = new Node;
+    temp->date = date;
+    temp->left = temp->right = NULL;
+    return temp;
+}
+
+Node* insert(Node* root, string date)
+{
+    if (root == NULL)
+        return createNode(date);
+
+    if (date < root->date)
+        root->left = insert(root->left, date);
+    else
+        root->right = insert(root->right, date);
+
+    return root;
+}
+
+Node* deleteRange(Node* root, string start, string end)
+{
+    if (root == NULL)
+        return NULL;
+
+    root->left = deleteRange(root->left, start, end);
+    root->right = deleteRange(root->right, start, end);
+
+    if (root->date >= start && root->date <= end)
+    {
+        if (root->left == NULL)
+        {
+            Node* temp = root->right;
+            delete root;
+            return temp;
+        }
+
+        if (root->right == NULL)
+        {
+            Node* temp = root->left;
+            delete root;
+            return temp;
+        }
+
+        Node* temp = root->right;
+
+        while (temp->left != NULL)
+            temp = temp->left;
+
+        root->date = temp->date;
+        root->right = deleteRange(root->right,
+                                  temp->date, temp->date);
+    }
+
+    return root;
+}
+
+void display(Node* root)
+{
+    if (root != NULL)
+    {
+        display(root->left);
+        cout << root->date << " ";
+        display(root->right);
+    }
+}
+
+int main()
+{
+    Node* root = NULL;
+    int n;
+    string date, start, end;
+
+    cout << "Enter number of coupons: ";
+    cin >> n;
+
+    for (int i = 0; i < n; i++)
+    {
+        cout << "Enter expiry date (YYYY-MM-DD): ";
+        cin >> date;
+        root = insert(root, date);
+    }
+
+    cout << "\nOriginal BST (expiry dates): ";
+    display(root);
+
+    cout << "\nEnter start date: ";
+    cin >> start;
+
+    cout << "Enter end date: ";
+    cin >> end;
+
+    if (start > end)
+    {
+        cout << "Invalid date range!";
+        return 0;
+    }
+
+    root = deleteRange(root, start, end);
+
+    cout << "\nUpdated BST: ";
+    display(root);
+
+    cout << endl;
+    return 0;
+}
